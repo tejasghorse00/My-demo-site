@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Firebase Auth Demo</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #ff9a9e, #fad0c4, #a18cd1);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      width: 350px;
+      text-align: center;
+    }
+    h2 {
+      margin-bottom: 20px;
+      color: #333;
+    }
+    input {
+      width: 80%;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      outline: none;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 10px 0;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      background: #6a11cb;
+      color: white;
+      font-weight: bold;
+      transition: 0.3s;
+    }
+    button:hover {
+      background: #2575fc;
+    }
+    #googleBtn {
+      background: #db4437;
+      width: 50%;
+      margin-top: 10px;
+    }
+    #googleBtn:hover {
+      background: #c1351d;
+    }
+    #logoutBtn {
+      background: #ff4b2b;
+    }
+    #logoutBtn:hover {
+      background: #ff416c;
+    }
+    #status {
+      margin-top: 15px;
+      font-weight: bold;
+      color: green;
+    }
+    #error {
+      color: red;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Authentication Container -->
+  <div class="container" id="authContainer">
+    <h2>Signup</h2>
+    <input type="email" id="signupEmail" placeholder="Email"><br>
+    <input type="password" id="signupPassword" placeholder="Password"><br>
+    <button id="signupBtn">Sign Up</button>
+
+    <h2>Login</h2>
+    <input type="email" id="loginEmail" placeholder="Email"><br>
+    <input type="password" id="loginPassword" placeholder="Password"><br>
+    <button id="loginBtn">Login</button>
+
+    <h2>Or Login with Google</h2>
+    <button id="googleBtn">Continue with Google</button>
+
+    <p id="status"></p>
+    <p id="error"></p>
+  </div>
+
+  <!-- Dashboard Container -->
+  <div class="container" id="dashboard" style="display:none;">
+    <h2>Welcome!</h2>
+    <p id="userEmail"></p>
+    <button id="logoutBtn">Logout</button>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } 
+      from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyBgpHx6jrlT9JMd2il2QP2XGmYJXjuD7NQ",
+      authDomain: "super-authentication-c6e56.firebaseapp.com",
+      projectId: "super-authentication-c6e56",
+      storageBucket: "super-authentication-c6e56.firebasestorage.app",
+      messagingSenderId: "917531865165",
+      appId: "1:917531865165:web:37d97f74a5ec763929ac04",
+      measurementId: "G-22ZZYQGJMH"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
+
+    // DOM Elements
+    const statusEl = document.getElementById("status");
+    const errorEl = document.getElementById("error");
+    const authContainer = document.getElementById("authContainer");
+    const dashboard = document.getElementById("dashboard");
+    const userEmailEl = document.getElementById("userEmail");
+
+    // Signup
+    document.getElementById("signupBtn").addEventListener("click", () => {
+      const email = document.getElementById("signupEmail").value;
+      const password = document.getElementById("signupPassword").value;
+      statusEl.innerText = "";
+      errorEl.innerText = "";
+
+      createUserWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+          statusEl.innerText = "Signup Successful ✅";
+          window.location.href = "signup-success.html"; // Redirect page
+        })
+        .catch((error) => {
+          errorEl.innerText = "Error: " + error.message;
+          window.location.href = "signup-error.html"; // Redirect error page
+        });
+    });
+
+    // Login
+    document.getElementById("loginBtn").addEventListener("click", () => {
+      const email = document.getElementById("loginEmail").value;
+      const password = document.getElementById("loginPassword").value;
+      statusEl.innerText = "";
+      errorEl.innerText = "";
+
+      signInWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+          authContainer.style.display = "none";
+          dashboard.style.display = "block";
+          userEmailEl.innerText = "Logged in as: " + userCredential.user.email;
+          statusEl.innerText = "Login Successful ✅";
+          window.location.href = "login-success.html"; // Redirect page
+        })
+        .catch((error) => {
+          errorEl.innerText = "Error: " + error.message;
+          window.location.href = "login-error.html"; // Redirect error page
+        });
+    });
+
+    // Google Login
+    document.getElementById("googleBtn").addEventListener("click", () => {
+      signInWithPopup(auth, provider)
+        .then((result) => {
+          const user = result.user;
+          authContainer.style.display = "none";
+          dashboard.style.display = "block";
+          userEmailEl.innerText = "Logged in as: " + user.email;
+          statusEl.innerText = "Google Login Successful ✅";
+          window.location.href = "login-success.html"; // Redirect page
+        })
+        .catch((error) => {
+          errorEl.innerText = "Error: " + error.message;
+          window.location.href = "login-error.html"; // Redirect error page
+        });
+    });
+
+    // Logout
+    document.getElementById("logoutBtn").addEventListener("click", () => {
+      signOut(auth).then(() => {
+        dashboard.style.display = "none";
+        authContainer.style.display = "block";
+        statusEl.innerText = "Logged out successfully ✅";
+      });
+    });
+
+    // Check auth state
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        authContainer.style.display = "none";
+        dashboard.style.display = "block";
+        userEmailEl.innerText = "Logged in as: " + user.email;
+      } else {
+        authContainer.style.display = "block";
+        dashboard.style.display = "none";
+      }
+    });
+  </script>
+</body>
+</html>
