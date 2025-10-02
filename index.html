@@ -1,29 +1,72 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>MyFlix - Login</title>
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
-  <div class="auth-container">
-    <h2>Signup</h2>
-    <input type="email" id="signupEmail" placeholder="Email">
-    <input type="password" id="signupPassword" placeholder="Password">
-    <button id="signupBtn">Sign Up</button>
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } 
+from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
-    <h2>Login</h2>
-    <input type="email" id="loginEmail" placeholder="Email">
-    <input type="password" id="loginPassword" placeholder="Password">
-    <button id="loginBtn">Login</button>
+// Firebase config
+const firebaseConfig = {
+  apiKey: "AIzaSyBgpHx6jrlT9JMd2il2QP2XGmYJXjuD7NQ",
+  authDomain: "super-authentication-c6e56.firebaseapp.com",
+  projectId: "super-authentication-c6e56",
+  storageBucket: "super-authentication-c6e56.appspot.com",
+  messagingSenderId: "917531865165",
+  appId: "1:917531865165:web:37d97f74a5ec763929ac04",
+  measurementId: "G-22ZZYQGJMH"
+};
 
-    <h2>Or Login with Google</h2>
-    <button id="googleBtn" class="google">Continue with Google</button>
+// Init
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const provider = new GoogleAuthProvider();
 
-    <p id="status"></p>
-    <p id="error"></p>
-  </div>
+// DOM
+const statusEl = document.getElementById("status");
+const errorEl = document.getElementById("error");
 
-  <script type="module" src="firebase-auth.js"></script>
-</body>
-</html>
+// Signup
+const signupBtn = document.getElementById("signupBtn");
+if(signupBtn){
+  signupBtn.addEventListener("click", () => {
+    const email = document.getElementById("signupEmail").value;
+    const password = document.getElementById("signupPassword").value;
+    createUserWithEmailAndPassword(auth, email, password)
+      .then(() => window.location.href = "home.html")
+      .catch(err => errorEl.innerText = err.message);
+  });
+}
+
+// Login
+const loginBtn = document.getElementById("loginBtn");
+if(loginBtn){
+  loginBtn.addEventListener("click", () => {
+    const email = document.getElementById("loginEmail").value;
+    const password = document.getElementById("loginPassword").value;
+    signInWithEmailAndPassword(auth, email, password)
+      .then(() => window.location.href = "home.html")
+      .catch(err => errorEl.innerText = err.message);
+  });
+}
+
+// Google Login
+const googleBtn = document.getElementById("googleBtn");
+if(googleBtn){
+  googleBtn.addEventListener("click", () => {
+    signInWithPopup(auth, provider)
+      .then(() => window.location.href = "home.html")
+      .catch(err => errorEl.innerText = err.message);
+  });
+}
+
+// Logout
+const logoutBtn = document.getElementById("logoutBtn");
+if(logoutBtn){
+  logoutBtn.addEventListener("click", () => {
+    signOut(auth).then(() => window.location.href = "index.html");
+  });
+}
+
+// Auth state check
+onAuthStateChanged(auth, (user) => {
+  if(!user && window.location.pathname.includes("home.html")){
+    window.location.href = "index.html";
+  }
+});
